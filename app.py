@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -27,6 +28,7 @@ st.set_page_config(
 )
 
 st.title("📱 Human Activity Recognition")
+
 st.write(
     "Machine Learning based Human Activity Recognition "
     "using smartphone sensor data."
@@ -199,6 +201,7 @@ with col3:
         f"{metrics['Precision']:.4f}"
     )
 
+
 col4, col5, col6 = st.columns(3)
 
 with col4:
@@ -230,6 +233,10 @@ if uploaded_file is not None:
 
     try:
 
+        # -------------------------------------------------
+        # Read uploaded CSV
+        # -------------------------------------------------
+
         data = pd.read_csv(uploaded_file)
 
         st.write(
@@ -257,7 +264,34 @@ if uploaded_file is not None:
             if column not in target_columns
         ]
 
+        # -------------------------------------------------
+        # Validate feature count
+        # -------------------------------------------------
+
+        if len(feature_columns) != 561:
+
+            st.error(
+                f"Expected 561 feature columns, "
+                f"but found {len(feature_columns)}."
+            )
+
+            st.info(
+                "Please upload the correct test_data.csv "
+                "containing 561 sensor features plus "
+                "Activity and Activity_Name."
+            )
+
+            st.stop()
+
+        # -------------------------------------------------
+        # Create feature matrix
+        # -------------------------------------------------
+
         X = data[feature_columns]
+
+        # -------------------------------------------------
+        # Target variable
+        # -------------------------------------------------
 
         y = None
 
@@ -277,12 +311,69 @@ if uploaded_file is not None:
         X = X.fillna(0)
 
         # -------------------------------------------------
+        # Convert to NumPy
+        # -------------------------------------------------
+        #
+        # The UCI HAR dataset contains duplicate feature
+        # names. Pandas automatically changes duplicates
+        # to names such as ".1", ".2", etc.
+        #
+        # Passing NumPy arrays avoids sklearn feature-name
+        # validation problems while preserving the exact
+        # feature order.
+        # -------------------------------------------------
+
+        X_array = X.to_numpy()
+
+        # -------------------------------------------------
+        # Verify feature shape
+        # -------------------------------------------------
+
+        if X_array.shape[1] != 561:
+
+            st.error(
+                "The feature matrix does not contain "
+                "exactly 561 features."
+            )
+
+            st.stop()
+
+        # -------------------------------------------------
         # Prediction
         # -------------------------------------------------
 
         st.header("4. Predictions")
 
-        predictions = selected_model.predict(X)
+        # Logistic Regression and KNN were trained
+        # using StandardScaler.
+        #
+        # Decision Tree, Naive Bayes, and Random Forest
+        # were trained using the original feature values.
+
+        if selected_model_name in [
+            "Logistic Regression",
+            "KNN"
+        ]:
+
+            X_for_prediction = scaler.transform(
+                X_array
+            )
+
+        else:
+
+            X_for_prediction = X_array
+
+        # -------------------------------------------------
+        # Generate predictions
+        # -------------------------------------------------
+
+        predictions = selected_model.predict(
+            X_for_prediction
+        )
+
+        # -------------------------------------------------
+        # Convert numeric predictions to activity names
+        # -------------------------------------------------
 
         predicted_names = [
             activity_mapping.get(
@@ -314,7 +405,9 @@ if uploaded_file is not None:
                 predictions,
                 target_names=[
                     activity_mapping[i]
-                    for i in sorted(activity_mapping.keys())
+                    for i in sorted(
+                        activity_mapping.keys()
+                    )
                 ],
                 output_dict=True,
                 zero_division=0
@@ -329,6 +422,10 @@ if uploaded_file is not None:
                 use_container_width=True
             )
 
+            # -------------------------------------------------
+            # Confusion Matrix
+            # -------------------------------------------------
+
             st.header("6. Confusion Matrix")
 
             cm = confusion_matrix(
@@ -338,7 +435,9 @@ if uploaded_file is not None:
 
             labels = [
                 activity_mapping[i]
-                for i in sorted(activity_mapping.keys())
+                for i in sorted(
+                    activity_mapping.keys()
+                )
             ]
 
             fig, ax = plt.subplots(
@@ -364,7 +463,8 @@ if uploaded_file is not None:
             )
 
             ax.set_title(
-                f"Confusion Matrix - {selected_model_name}"
+                f"Confusion Matrix - "
+                f"{selected_model_name}"
             )
 
             plt.xticks(
@@ -379,6 +479,8 @@ if uploaded_file is not None:
             plt.tight_layout()
 
             st.pyplot(fig)
+
+            plt.close(fig)
 
         else:
 
@@ -415,3 +517,4 @@ st.caption(
     "Human Activity Recognition | "
     "Machine Learning Assignment 2"
 )
+```
