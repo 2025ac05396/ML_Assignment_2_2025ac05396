@@ -138,14 +138,13 @@ Logistic Regression achieved the highest accuracy, AUC, precision, recall, F1 sc
 
 A Streamlit web application was developed to demonstrate the trained machine learning models.
 
-The application provides the following features:
+### Live Application
 
-- CSV test dataset upload
-- Machine learning model selection
-- Display of model evaluation metrics
-- Activity predictions
-- Classification report
-- Confusion matrix
+The deployed Streamlit application can be accessed here:
+
+Live Demo: https://mlassignment22025ac05396.streamlit.app/
+
+The application provides the following features:
 
 ### Application Workflow
 
