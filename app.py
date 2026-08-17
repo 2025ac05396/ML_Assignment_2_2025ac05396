@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -17,6 +16,7 @@ from sklearn.metrics import (
     classification_report
 )
 
+
 # ---------------------------------------------------------
 # Page configuration
 # ---------------------------------------------------------
@@ -27,12 +27,18 @@ st.set_page_config(
     layout="wide"
 )
 
+
+# ---------------------------------------------------------
+# Title
+# ---------------------------------------------------------
+
 st.title("📱 Human Activity Recognition")
 
 st.write(
     "Machine Learning based Human Activity Recognition "
     "using smartphone sensor data."
 )
+
 
 # ---------------------------------------------------------
 # Load trained models
@@ -96,7 +102,7 @@ except Exception as e:
 
 
 # ---------------------------------------------------------
-# Sidebar
+# Sidebar - Model Selection
 # ---------------------------------------------------------
 
 st.sidebar.header("Model Selection")
@@ -110,22 +116,11 @@ selected_model = models[selected_model_name]
 
 
 # ---------------------------------------------------------
-# File upload
-# ---------------------------------------------------------
-
-st.header("1. Upload Test Dataset")
-
-uploaded_file = st.file_uploader(
-    "Upload test_data.csv",
-    type=["csv"]
-)
-
-
-# ---------------------------------------------------------
 # Model performance
 # ---------------------------------------------------------
 
 model_metrics = {
+
     "Logistic Regression": {
         "Accuracy": 0.954869,
         "AUC": 0.997485,
@@ -174,60 +169,75 @@ model_metrics = {
 
 
 # ---------------------------------------------------------
-# Display evaluation metrics
+# File upload
 # ---------------------------------------------------------
 
-st.header("2. Model Evaluation")
+st.header("1. Upload Test Dataset")
 
-metrics = model_metrics[selected_model_name]
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric(
-        "Accuracy",
-        f"{metrics['Accuracy']:.4f}"
-    )
-
-with col2:
-    st.metric(
-        "AUC",
-        f"{metrics['AUC']:.4f}"
-    )
-
-with col3:
-    st.metric(
-        "Precision",
-        f"{metrics['Precision']:.4f}"
-    )
+uploaded_file = st.file_uploader(
+    "Upload test_data.csv",
+    type=["csv"]
+)
 
 
-col4, col5, col6 = st.columns(3)
-
-with col4:
-    st.metric(
-        "Recall",
-        f"{metrics['Recall']:.4f}"
-    )
-
-with col5:
-    st.metric(
-        "F1 Score",
-        f"{metrics['F1']:.4f}"
-    )
-
-with col6:
-    st.metric(
-        "MCC",
-        f"{metrics['MCC']:.4f}"
-    )
-
-
-# ---------------------------------------------------------
-# Process uploaded data
-# ---------------------------------------------------------
+# =========================================================
+# Everything below this point appears ONLY after upload
+# =========================================================
 
 if uploaded_file is not None:
+
+    # -----------------------------------------------------
+    # Model Evaluation
+    # -----------------------------------------------------
+
+    st.header("2. Model Evaluation")
+
+    metrics = model_metrics[selected_model_name]
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric(
+            "Accuracy",
+            f"{metrics['Accuracy']:.4f}"
+        )
+
+    with col2:
+        st.metric(
+            "AUC",
+            f"{metrics['AUC']:.4f}"
+        )
+
+    with col3:
+        st.metric(
+            "Precision",
+            f"{metrics['Precision']:.4f}"
+        )
+
+    col4, col5, col6 = st.columns(3)
+
+    with col4:
+        st.metric(
+            "Recall",
+            f"{metrics['Recall']:.4f}"
+        )
+
+    with col5:
+        st.metric(
+            "F1 Score",
+            f"{metrics['F1']:.4f}"
+        )
+
+    with col6:
+        st.metric(
+            "MCC",
+            f"{metrics['MCC']:.4f}"
+        )
+
+
+    # -----------------------------------------------------
+    # Process uploaded data
+    # -----------------------------------------------------
 
     st.header("3. Test Data")
 
@@ -249,6 +259,7 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
+
         # -------------------------------------------------
         # Separate features and target
         # -------------------------------------------------
@@ -263,6 +274,7 @@ if uploaded_file is not None:
             for column in data.columns
             if column not in target_columns
         ]
+
 
         # -------------------------------------------------
         # Validate feature count
@@ -283,11 +295,13 @@ if uploaded_file is not None:
 
             st.stop()
 
+
         # -------------------------------------------------
         # Create feature matrix
         # -------------------------------------------------
 
         X = data[feature_columns]
+
 
         # -------------------------------------------------
         # Target variable
@@ -296,8 +310,8 @@ if uploaded_file is not None:
         y = None
 
         if "Activity" in data.columns:
-
             y = data["Activity"]
+
 
         # -------------------------------------------------
         # Make sure features are numeric
@@ -310,20 +324,13 @@ if uploaded_file is not None:
 
         X = X.fillna(0)
 
+
         # -------------------------------------------------
         # Convert to NumPy
         # -------------------------------------------------
-        #
-        # The UCI HAR dataset contains duplicate feature
-        # names. Pandas automatically changes duplicates
-        # to names such as ".1", ".2", etc.
-        #
-        # Passing NumPy arrays avoids sklearn feature-name
-        # validation problems while preserving the exact
-        # feature order.
-        # -------------------------------------------------
 
         X_array = X.to_numpy()
+
 
         # -------------------------------------------------
         # Verify feature shape
@@ -338,17 +345,19 @@ if uploaded_file is not None:
 
             st.stop()
 
+
         # -------------------------------------------------
         # Prediction
         # -------------------------------------------------
 
         st.header("4. Predictions")
 
+
         # Logistic Regression and KNN were trained
         # using StandardScaler.
         #
         # Decision Tree, Naive Bayes, and Random Forest
-        # were trained using the original feature values.
+        # were trained using original feature values.
 
         if selected_model_name in [
             "Logistic Regression",
@@ -363,6 +372,7 @@ if uploaded_file is not None:
 
             X_for_prediction = X_array
 
+
         # -------------------------------------------------
         # Generate predictions
         # -------------------------------------------------
@@ -371,29 +381,37 @@ if uploaded_file is not None:
             X_for_prediction
         )
 
+
         # -------------------------------------------------
-        # Convert numeric predictions to activity names
+        # Convert predictions to activity names
         # -------------------------------------------------
 
         predicted_names = [
+
             activity_mapping.get(
                 int(prediction),
                 str(prediction)
             )
+
             for prediction in predictions
         ]
 
+
         prediction_output = pd.DataFrame({
+
             "Predicted Activity": predicted_names
+
         })
+
 
         st.dataframe(
             prediction_output.head(20),
             use_container_width=True
         )
 
+
         # -------------------------------------------------
-        # Classification report and confusion matrix
+        # Classification Report
         # -------------------------------------------------
 
         if y is not None:
@@ -401,26 +419,33 @@ if uploaded_file is not None:
             st.header("5. Classification Report")
 
             report = classification_report(
+
                 y,
                 predictions,
+
                 target_names=[
                     activity_mapping[i]
                     for i in sorted(
                         activity_mapping.keys()
                     )
                 ],
+
                 output_dict=True,
+
                 zero_division=0
             )
+
 
             report_df = pd.DataFrame(
                 report
             ).transpose()
 
+
             st.dataframe(
                 report_df,
                 use_container_width=True
             )
+
 
             # -------------------------------------------------
             # Confusion Matrix
@@ -433,6 +458,7 @@ if uploaded_file is not None:
                 predictions
             )
 
+
             labels = [
                 activity_mapping[i]
                 for i in sorted(
@@ -440,9 +466,11 @@ if uploaded_file is not None:
                 )
             ]
 
+
             fig, ax = plt.subplots(
                 figsize=(9, 7)
             )
+
 
             sns.heatmap(
                 cm,
@@ -453,6 +481,7 @@ if uploaded_file is not None:
                 yticklabels=labels,
                 ax=ax
             )
+
 
             ax.set_xlabel(
                 "Predicted Activity"
@@ -467,6 +496,7 @@ if uploaded_file is not None:
                 f"{selected_model_name}"
             )
 
+
             plt.xticks(
                 rotation=45,
                 ha="right"
@@ -478,9 +508,11 @@ if uploaded_file is not None:
 
             plt.tight_layout()
 
+
             st.pyplot(fig)
 
             plt.close(fig)
+
 
         else:
 
@@ -489,6 +521,7 @@ if uploaded_file is not None:
                 "'Activity' column. Predictions are shown "
                 "without evaluation metrics."
             )
+
 
     except Exception as e:
 
@@ -499,11 +532,13 @@ if uploaded_file is not None:
 
         st.exception(e)
 
+
 else:
 
     st.info(
         "Upload test_data.csv above to generate "
-        "predictions and the classification report."
+        "model evaluation metrics, predictions, "
+        "classification report, and confusion matrix."
     )
 
 
@@ -517,4 +552,3 @@ st.caption(
     "Human Activity Recognition | "
     "Machine Learning Assignment 2"
 )
-
